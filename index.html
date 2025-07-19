@@ -74,7 +74,7 @@
 
     <div id="intro-area" class="question-card mb-4">
       <p class="text-sm">Discover which of the 12 intelligence types best matches your personality. Answer a few quick questions and find out how your brain really shines!</p>
-      <button onclick="startQuiz()" class="mt-4 bg-pink-500 text-white font-bold py-2 px-4 rounded-xl text-sm">Start Test</button>
+      <button id="start-btn" class="mt-4 bg-pink-500 text-white font-bold py-2 px-4 rounded-xl text-sm">Start Test</button>
     </div>
 
     <div id="quiz-area" class="question-card hidden">
@@ -96,138 +96,160 @@
           Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved
         </footer>
       </div>
-      <button onclick="restartQuiz()" class="mt-4 bg-pink-500 text-white font-bold py-2 px-4 rounded-xl text-sm">Try Again</button>
-      <button onclick="downloadResults()" class="mt-2 bg-blue-500 text-white font-bold py-2 px-4 rounded-xl text-sm">Download Results</button>
+      <button id="restart-btn" class="mt-4 bg-pink-500 text-white font-bold py-2 px-4 rounded-xl text-sm">Try Again</button>
+      <button id="download-btn" class="mt-2 bg-blue-500 text-white font-bold py-2 px-4 rounded-xl text-sm">Download Results</button>
       <div id="share-link" class="share-link hidden"></div>
     </div>
   </div>
 
   <script>
-    const questions = [...Array.from({ length: 18 }, (_, i) => ({
-      text: [
-        "I enjoy solving puzzles and logic games.",
-        "I’m sensitive to sounds, rhythms, and music.",
-        "I learn best when I can visualize information.",
-        "I enjoy planning and thinking ahead.",
-        "I feel a strong connection to nature and animals.",
-        "I often ponder deep life questions.",
-        "I learn best through movement and physical activity.",
-        "I’m aware of and influenced by my emotions.",
-        "I spend time thinking about who I am and how I feel.",
-        "I express myself well through words and writing.",
-        "I enjoy being around people and making connections.",
-        "I’m good at working with numbers and data.",
-        "I often think about ethical or spiritual questions.",
-        "I can interpret people's feelings by their expressions.",
-        "I enjoy drawing, doodling, or designing.",
-        "I can sense subtle changes in weather or nature.",
-        "I often use gestures while explaining things.",
-        "I compose or play music easily."
-      ][i],
-      type: [
-        "Logic Smart", "Music Smart", "Picture Smart", "Strategy Smart", "Nature Smart", "Philosophy Smart",
-        "Body Smart", "Emotion Smart", "Self Smart", "Word Smart", "People Smart", "Number Smart",
-        "Philosophy Smart", "People Smart", "Picture Smart", "Nature Smart", "Body Smart", "Music Smart"
-      ][i]
-    }))
+    document.addEventListener('DOMContentLoaded', function() {
+      const questions = [
+        { text: "I enjoy solving puzzles and logic games.", type: "Logic Smart" },
+        { text: "I'm sensitive to sounds, rhythms, and music.", type: "Music Smart" },
+        { text: "I learn best when I can visualize information.", type: "Picture Smart" },
+        { text: "I enjoy planning and thinking ahead.", type: "Strategy Smart" },
+        { text: "I feel a strong connection to nature and animals.", type: "Nature Smart" },
+        { text: "I often ponder deep life questions.", type: "Philosophy Smart" },
+        { text: "I learn best through movement and physical activity.", type: "Body Smart" },
+        { text: "I'm aware of and influenced by my emotions.", type: "Emotion Smart" },
+        { text: "I spend time thinking about who I am and how I feel.", type: "Self Smart" },
+        { text: "I express myself well through words and writing.", type: "Word Smart" },
+        { text: "I enjoy being around people and making connections.", type: "People Smart" },
+        { text: "I'm good at working with numbers and data.", type: "Number Smart" },
+        { text: "I often think about ethical or spiritual questions.", type: "Philosophy Smart" },
+        { text: "I can interpret people's feelings by their expressions.", type: "People Smart" },
+        { text: "I enjoy drawing, doodling, or designing.", type: "Picture Smart" },
+        { text: "I can sense subtle changes in weather or nature.", type: "Nature Smart" },
+        { text: "I often use gestures while explaining things.", type: "Body Smart" },
+        { text: "I compose or play music easily.", type: "Music Smart" }
+      ];
 
-    let index = 0;
-    const scores = {};
+      let index = 0;
+      const scores = {};
 
-    function startQuiz() {
-      index = 0;
-      questions.forEach(q => scores[q.type] = 0);
-      document.getElementById('intro-area').classList.add('hidden');
-      document.getElementById('result-area').classList.add('hidden');
-      document.getElementById('quiz-area').classList.remove('hidden');
-      showQuestion();
-    }
+      function initScores() {
+        questions.forEach(q => scores[q.type] = 0);
+      }
 
-    function showQuestion() {
-      const q = questions[index];
-      document.getElementById('question').textContent = q.text;
-      const answers = document.getElementById('answers');
-      answers.innerHTML = '';
+      function startQuiz() {
+        index = 0;
+        initScores();
+        document.getElementById('intro-area').classList.add('hidden');
+        document.getElementById('result-area').classList.add('hidden');
+        document.getElementById('quiz-area').classList.remove('hidden');
+        showQuestion();
+      }
 
-      ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"].forEach((label, i) => {
-        const btn = document.createElement('button');
-        btn.textContent = label;
-        btn.className = 'answer-button';
-        btn.onclick = () => {
-          scores[q.type] += i;
-          index++;
-          if (index < questions.length) {
-            showQuestion();
-          } else {
-            showLoading();
-            setTimeout(showResults, 2000);
-          }
-        };
-        answers.appendChild(btn);
-      });
-    }
+      function showQuestion() {
+        const q = questions[index];
+        document.getElementById('question').textContent = q.text;
+        const answers = document.getElementById('answers');
+        answers.innerHTML = '';
 
-    function showLoading() {
-      document.getElementById('quiz-area').classList.add('hidden');
-      document.getElementById('loading-area').classList.remove('hidden');
-    }
-
-    function showResults() {
-      document.getElementById('loading-area').classList.add('hidden');
-      document.getElementById('result-area').classList.remove('hidden');
-      const maxType = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
-      document.getElementById('result-text').textContent = maxType;
-
-      const ctx = document.getElementById('result-chart').getContext('2d');
-      new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: Object.keys(scores),
-          datasets: [{
-            label: 'Your Smart Profile',
-            data: Object.values(scores),
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: 'rgba(255, 99, 132, 1)',
-            borderWidth: 2
-          }]
-        },
-        options: {
-          scales: {
-            r: {
-              suggestedMin: 0,
-              suggestedMax: 20,
-              pointLabels: {
-                font: { size: 8 }
-              }
+        ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"].forEach((label, i) => {
+          const btn = document.createElement('button');
+          btn.textContent = label;
+          btn.className = 'answer-button';
+          btn.onclick = () => {
+            scores[q.type] += i;
+            index++;
+            if (index < questions.length) {
+              showQuestion();
+            } else {
+              showLoading();
+              setTimeout(showResults, 2000);
             }
+          };
+          answers.appendChild(btn);
+        });
+      }
+
+      function showLoading() {
+        document.getElementById('quiz-area').classList.add('hidden');
+        document.getElementById('loading-area').classList.remove('hidden');
+      }
+
+      function showResults() {
+        document.getElementById('loading-area').classList.add('hidden');
+        document.getElementById('result-area').classList.remove('hidden');
+        
+        // Sort scores to find the highest
+        const sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+        const maxType = sortedScores[0][0];
+        document.getElementById('result-text').textContent = maxType;
+
+        const ctx = document.getElementById('result-chart').getContext('2d');
+        new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: Object.keys(scores),
+            datasets: [{
+              label: 'Your Smart Profile',
+              data: Object.values(scores),
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 2
+            }]
           },
-          plugins: {
-            legend: { display: false }
+          options: {
+            scales: {
+              r: {
+                suggestedMin: 0,
+                suggestedMax: 20,
+                pointLabels: {
+                  font: { size: 8 }
+                }
+              }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+
+        const shareLink = document.getElementById('share-link');
+        const params = new URLSearchParams();
+        for (const [key, value] of Object.entries(scores)) {
+          params.append(key, value);
+        }
+        const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+        shareLink.classList.remove('hidden');
+        shareLink.innerHTML = `<strong>Shareable link:</strong><br><a href="${url}" target="_blank">${url}</a>`;
+      }
+
+      function downloadResults() {
+        const printArea = document.getElementById('print-area');
+        html2canvas(printArea).then(canvas => {
+          const link = document.createElement('a');
+          link.download = 'whats-your-smart-result.png';
+          link.href = canvas.toDataURL();
+          link.click();
+        });
+      }
+
+      function restartQuiz() {
+        document.getElementById('result-area').classList.add('hidden');
+        document.getElementById('intro-area').classList.remove('hidden');
+      }
+
+      // Event listeners
+      document.getElementById('start-btn').addEventListener('click', startQuiz);
+      document.getElementById('restart-btn').addEventListener('click', restartQuiz);
+      document.getElementById('download-btn').addEventListener('click', downloadResults);
+
+      // Check for URL parameters to show results directly
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.toString()) {
+        initScores();
+        for (const [key, value] of urlParams.entries()) {
+          if (scores.hasOwnProperty(key)) {
+            scores[key] = parseInt(value);
           }
         }
-      });
-
-      const shareLink = document.getElementById('share-link');
-      const params = new URLSearchParams(scores).toString();
-      const url = `${window.location.origin}${window.location.pathname}?${params}`;
-      shareLink.classList.remove('hidden');
-      shareLink.innerHTML = `<strong>Shareable link:</strong><br><a href="${url}" target="_blank">${url}</a>`;
-    }
-
-    function downloadResults() {
-      const printArea = document.getElementById('print-area');
-      html2canvas(printArea).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'whats-your-smart-result.png';
-        link.href = canvas.toDataURL();
-        link.click();
-      });
-    }
-
-    function restartQuiz() {
-      document.getElementById('result-area').classList.add('hidden');
-      document.getElementById('intro-area').classList.remove('hidden');
-    }
+        showResults();
+      }
+    });
   </script>
 </body>
 </html>
